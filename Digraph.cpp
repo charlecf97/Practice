@@ -1,7 +1,6 @@
 // ConsoleApplication3.cpp : This file contains the 'main' function. Program execution begins and ends there.
 // Christian Charles
 
-//#include "pch.h"
 #include <iostream>
 #include <string>
 
@@ -17,7 +16,7 @@ class Digraph {
 private:
 
 	node* Header;
-	int V; //number of vertices
+	int size; //number of vertices
 	node* stack;
 
 	void RecursiveDelete(node* temp) {
@@ -30,18 +29,16 @@ private:
 	}
 
 	void StackPush(int x) {
+		// add x to the stack
 		node* temp = new node;
 		temp->vertex = x;
 		temp->next = stack;
 		stack = temp;
-
-		/*if (stack == NULL) {
-			stack = new node{ x, NULL };
-			return;
-		}*/
+		return;
 	}
 
 	bool StackContains(int x) {
+		// check if stack contain vertex x
 		node* temp = stack;
 		while (temp != NULL) {
 			if (temp->vertex == x)
@@ -55,6 +52,7 @@ private:
 	}
 
 	void StackPop() {
+		// remove top element element from stack
 		node* temp = stack;
 		if (temp == NULL)
 			return;
@@ -65,10 +63,11 @@ private:
 public:
 
 
-	Digraph(int size) {  //constructor
-		Header = new node[size];
-		V = size;
-		for (int i = 0; i < V; i++) {
+	Digraph(int s) {  //constructor
+		//create array of node which Header points to, and initialize each node
+		Header = new node[s];
+		size = s;
+		for (int i = 0; i < size; i++) {
 			Header[i].vertex = i;
 			Header[i].next = NULL;
 		}
@@ -76,8 +75,8 @@ public:
 	}
 
 	~Digraph() {
-		//delete things
-		for (int i = 0; i < V; i++)
+		//delete pointers
+		for (int i = 0; i < size; i++)
 		{
 			RecursiveDelete(&Header[i]);
 		}
@@ -85,10 +84,6 @@ public:
 
 	void addEdge(int x, int y) {
 		//add Edge to digraph, task x must preced task y
-		if (x <= V || y <= V) {
-			cout << "Vertex does not exist\n";
-			return;
-		}
 		node* nextNode = Header[x].next;
 		node* newEdge = new node;
 		newEdge->vertex = y;
@@ -97,6 +92,7 @@ public:
 	}
 
 	void deleteEdge(int x, int y) {
+		//delete edge
 		node* prev = &Header[x];
 		node* ptr = Header[x].next;
 
@@ -117,14 +113,15 @@ public:
 	}
 
 	bool TopologicalSort(int* TopList) {
-		int* Mark = new int[V];
-		for (int i = 0; i < V; i++) {
+		int* Mark = new int[size];
+		for (int i = 0; i < size; i++) {
 			Mark[i] = 0;
 		}
-		int counter = V - 1;
-		for (int i = 0; i < V; i++) {
+		int counter = size - 1;
+		for (int i = 0; i < size; i++) {
 			if (Mark[i] == 0) {
 				stack = NULL;
+				//execute a depth first search for each path starting at i
 				bool cycl = DFS(i, Mark, TopList, &counter);
 				if (cycl) return true;
 			}
@@ -132,9 +129,9 @@ public:
 		}
 		return false;
 	}
+
 	bool DFS(int i, int* Mark, int* TopList, int* counter) {
 		Mark[i] = 1;
-		int a = 0;
 		bool cycl = StackContains(i);
 		if (cycl)
 			return true;
@@ -158,18 +155,19 @@ public:
 		return false;
 	}
 
+	int inrange(char x[]) {
+
+		if (isdigit(x[0]) == 0 || atoi(x) < 0 || atoi(x) >= size) {
+			cout << "\nTask entered doesn't exist, only enter the number of the task: ";
+			cin >> x;
+
+		}
+		return atoi(x);
+	}
 };
 
-int inrange(char x[], int size) {
-	while (isdigit(x[0]) == 0 || atoi(x) < 0 || atoi(x) >= size) {
-		cout << "\n task entered doesnt exist, only enter the number of the task: ";
-		cin >> x;
-	}
-	return atoi(x);
-}
 
-
-int main2()
+int main()
 {
 	cout << "Hello! Lets make a Digraph!\n";
 	cout << "How many different tasks would you like to do? ";
@@ -190,30 +188,29 @@ int main2()
 		tasks[i] = task;
 	}
 	int option = 0;
-	while (option != 5) {
-		cout << "Options: \n1. add edge\n2. delete edge\n3. Topological Sort\n5. quit\nChoice:  ";
+	while (option != 4) {
+		cout << "Options: \n1. add edge\n2. delete edge\n3. Topological Sort\n4. quit\nChoice:  ";
 		cin >> option;
 
 		char xcheck[4], ycheck[4];
+		int x, y;
 		if (option == 1) {
-			int x, y;
-			cout << "Enter order relation: ";
+			cout << "Enter order relation in the form 'x y': ";
 			cin >> xcheck;
-			x = inrange(xcheck, size);
+			x = graph.inrange(xcheck);
 			cin.ignore();
 			cin >> ycheck;
-			y = inrange(ycheck, size);
+			y = graph.inrange(ycheck);
 			graph.addEdge(x, y);
 		}
 		else if (option == 2)
 		{
-			int x, y;
-			cout << "Enter order relation: ";
+			cout << "Enter order relation in the form 'x y': ";
 			cin >> xcheck;
-			x = inrange(xcheck, size);
+			x = graph.inrange(xcheck);
 			cin.ignore();
 			cin >> ycheck;
-			y = inrange(ycheck, size);
+			y = graph.inrange(ycheck);
 			graph.deleteEdge(x, y);
 		}
 		else if (option == 3) {
@@ -222,7 +219,7 @@ int main2()
 			if (cycl == false) {
 				cout << "Topological Order:\n";
 				for (int i = 0; i < size; i++) {
-					cout << TopList[i] << ". " << tasks[i] << "\n";
+					cout << TopList[i] << ". " << tasks[TopList[i]] << "\n";
 				}
 				cout << "\n";
 			}
@@ -232,6 +229,3 @@ int main2()
 
 	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
